@@ -4,6 +4,12 @@ hopa-core provides the structure for writing executable examples of how your cod
 
 ## Install
 
+    cd your_project
+    git clone git@github.com:DasRegal/hopa.git
+    echo alias hopa='./hopa/hopa/hopa' >> ~/.bashrc
+    source ~/.bashrc
+    hopa init
+
 ## Basic Structure
 
 Hopa uses the words "describe" and "it" so we can express concepts like a conversation:

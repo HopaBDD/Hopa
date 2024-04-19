@@ -10,8 +10,8 @@ INC_FILE_NAME="$(pwd)/includes"
 SPEC_DIR="$PRJ_PATH/spec"
 
 function print_usage {
-    echo "Usage: ./hopa.sh [options]"
-    echo "type: './hopa.sh --help' for more"
+    echo "Usage: hopa [options]"
+    echo "type: 'hopa --help' for more"
 }
 
 function print_version {
@@ -19,7 +19,7 @@ function print_version {
 }
 
 function print_help {
-    echo "Usage: ./hopa.sh [options]"
+    echo "Usage: hopa [options]"
     echo "available options:"
     echo "  -h, --help"
     echo "      prints this page"
@@ -27,7 +27,19 @@ function print_help {
     echo "      be verbose"
     echo "  -V, --version"
     echo "      print program version"
+    echo "  init"
+    echo "      initialize hopa"
     echo ""
+}
+
+function init {
+    mkdir spec
+    if [ $? -ne 0 ]
+    then
+        exit 1
+    else
+        echo "make directory spec/"
+    fi
 }
 
 VERBOSE_MODE=
@@ -46,6 +58,10 @@ case $key in
     --verbose|-v)
         VERBOSE_MODE=1
         ;;
+    init)
+        init
+        exit 0
+        ;;
     *)
         echo "Invalid option."
         print_usage
@@ -60,6 +76,7 @@ if [ ! -d $SPEC_DIR ]
 then
     echo
     echo "[Hopa] Error: \`$SPEC_DIR\` directory does not exists."
+    echo "Type hopa init"
     exit 1
 fi
 
@@ -85,7 +102,7 @@ do
     fi
 done
 
-COMPILE_CMD="gcc $RUNIT_C $SRC -o $EXE_FILE -DTEST_MDB -I$PRJ_PATH"
+COMPILE_CMD="gcc $RUNIT_C $SRC -o $EXE_FILE -I$PRJ_PATH"
 
 if [ "$VERBOSE_MODE" ]
 then
@@ -94,7 +111,7 @@ then
     echo
     echo $COMPILE_CMD
     echo
-    gcc -E $RUNIT_C $SRC -DTEST_MDB -I$PRJ_PATH > log
+    gcc -E $RUNIT_C $SRC -I$PRJ_PATH > log
     echo
     $COMPILE_CMD
 else

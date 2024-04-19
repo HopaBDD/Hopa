@@ -1,0 +1,121 @@
+#!/bin/bash
+
+HOPA_VERSION=1.0V
+
+RUNIT_SCRIPT_PATH=$0
+EXE_FILE=$(echo $RUNIT_SCRIPT_PATH)_exe
+RUNIT_C=$(echo $RUNIT_SCRIPT_PATH).c
+PRJ_PATH="$(pwd)"
+INC_FILE_NAME="$(pwd)/includes"
+SPEC_DIR="$PRJ_PATH/spec"
+
+function print_usage {
+    echo "Usage: ./hopa.sh [options]"
+    echo "type: './hopa.sh --help' for more"
+}
+
+function print_version {
+    echo "Hopa Test framework $HOPA_VERSION"
+}
+
+function print_help {
+    echo "Usage: ./hopa.sh [options]"
+    echo "available options:"
+    echo "  -h, --help"
+    echo "      prints this page"
+    echo "  -v, --verbose"
+    echo "      be verbose"
+    echo "  -V, --version"
+    echo "      print program version"
+    echo ""
+}
+
+VERBOSE_MODE=
+
+for key in "$@"
+do
+case $key in
+    --help|-h)
+        print_help
+        exit 0
+        ;;
+    --version|-V)
+        print_version
+        exit 0
+        ;;
+    --verbose|-v)
+        VERBOSE_MODE=1
+        ;;
+    *)
+        echo "Invalid option."
+        print_usage
+        exit 1
+        ;;
+esac
+done
+
+echo "Hopa! $HOPA_VERSION"
+
+if [ ! -d $SPEC_DIR ]
+then
+    echo
+    echo "[Hopa] Error: \`$SPEC_DIR\` directory does not exists."
+    exit 1
+fi
+
+if [ -f $INC_FILE_NAME ]
+then
+    rm $INC_FILE_NAME
+fi
+touch $INC_FILE_NAME
+
+if [ -z "$INC_FILES" ]
+then
+    INC_FILES=`ls $SPEC_DIR/*`
+fi
+
+SRC=""
+for eachfile in $INC_FILES
+do
+    echo "#include \"$eachfile\"" >> $INC_FILE_NAME
+    INC_SRC=$(cat $eachfile | grep -Ei 'source\(\".*"\)' | grep -oEi '\".*\"' | grep -oEi '[^"]*' | tr '\n' ' ')
+    if [ ! -z "$INC_SRC" ]
+    then
+        SRC="$SRC $PRJ_PATH/$INC_SRC"
+    fi
+done
+
+COMPILE_CMD="gcc $RUNIT_C $SRC -o $EXE_FILE -DTEST_MDB -I$PRJ_PATH"
+
+if [ "$VERBOSE_MODE" ]
+then
+    echo
+    cat $INC_FILE_NAME
+    echo
+    echo $COMPILE_CMD
+    echo
+    gcc -E $RUNIT_C $SRC -DTEST_MDB -I$PRJ_PATH > log
+    echo
+    $COMPILE_CMD
+else
+    $COMPILE_CMD > /dev/null 2>&1
+fi
+
+if [ $? -ne 0 ]
+then
+    echo
+    echo "[Hopa] Error: compile error."
+    exit 1
+else
+    $EXE_FILE
+fi
+
+if [ -f $INC_FILE_NAME ]
+then
+    rm $EXE_FILE
+    rm $INC_FILE_NAME
+else
+    echo
+    echo "[Hopa] Error: compile error."
+    exit 1
+fi

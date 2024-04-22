@@ -1,6 +1,8 @@
+# Behaviour Driven Development for C.
+
 # hopa-core
 
-hopa-core provides the structure for writing executable examples of how your code should behave, and an rspec command with tools to constrain which examples get run and tailor the output.
+hopa-core provides the structure for writing executable examples of how your code should behave, and an hopa command with tools to constrain which examples get run and tailor the output.
 
 ## Install
 

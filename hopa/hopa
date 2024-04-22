@@ -34,6 +34,7 @@ function print_help {
 
 function init {
     mkdir spec
+    chmod +x ./hopa/hopa/hopa
     if [ $? -ne 0 ]
     then
         exit 1

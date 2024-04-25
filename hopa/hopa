@@ -64,9 +64,7 @@ case $key in
         exit 0
         ;;
     *)
-        echo "Invalid option."
-        print_usage
-        exit 1
+        INC_FILES="$INC_FILES $key"
         ;;
 esac
 done
@@ -92,7 +90,6 @@ then
     INC_FILES=`ls $SPEC_DIR/*`
 fi
 
-SRC=""
 for eachfile in $INC_FILES
 do
     echo "#include \"$eachfile\"" >> $INC_FILE_NAME
@@ -103,7 +100,7 @@ do
     fi
 done
 
-COMPILE_CMD="gcc $RUNIT_C $SRC -o $EXE_FILE -I$PRJ_PATH"
+COMPILE_CMD="gcc $RUNIT_C $SRC -o $EXE_FILE -I$PRJ_PATH -DHOPA_NOT_INCLUDE_FOR_TEST"
 
 if [ "$VERBOSE_MODE" ]
 then
@@ -112,7 +109,7 @@ then
     echo
     echo $COMPILE_CMD
     echo
-    gcc -E $RUNIT_C $SRC -I$PRJ_PATH > log
+    gcc -E $RUNIT_C $SRC -I$PRJ_PATH -DHOPA_NOT_INCLUDE_FOR_TEST > log
     echo
     $COMPILE_CMD
 else

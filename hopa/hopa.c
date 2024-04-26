@@ -53,18 +53,17 @@
                                     ); \
                                     ru_test++;
 
-#define describe(_str)              ru_namespace++; \
-                                    ru_tmp_str[ru_namespace] = _str; \
-                                    auto void FUNK_NAME(char* ru_str); \
-                                    sprintf(ru_err_buf, "%s", ru_tmp_str[1]); \
-                                    for (int i = 2; i <= ru_namespace; i++) { strcat(ru_err_buf, "\n\t"); strcat(ru_err_buf, ru_tmp_str[i]); } \
-                                    if (ru_before_each_func != NULL && ru_is_it) ru_before_each_func(); \
-                                    FUNK_NAME(ru_tmp_str[ru_namespace]); \
-                                    sprintf(ru_err_buf, "%s", ""); \
+#define describe(_str)              ru_tmp_str[ru_namespace] = _str; \
+                                    auto void FUNK_NAME(void); \
+                                    sprintf(ru_err_buf, "%s", ru_tmp_str[0]); \
+                                    for (int i = 1; i <= ru_namespace; i++) { strcat(ru_err_buf, "\n\t"); strcat(ru_err_buf, ru_tmp_str[i]); } \
+                                    if (ru_before_each_func != NULL && ru_is_it) { ru_before_each_func(); } \
+                                    ru_namespace++; \
+                                    if (ru_namespace > RUNIT_ATTACH_COUNT) { printf("\n[hopa] Error: The nesting of blocks should not exceed the maximum (%d)\n\n", RUNIT_ATTACH_COUNT); exit(1); } \
+                                    FUNK_NAME(); \
                                     ru_namespace--; \
-                                    if (ru_namespace == 0) { /*ru_before_each_func = (void*)NULL*/ } \
                                     ru_is_it = 0; \
-                                    void FUNK_NAME(char* ru_str)
+                                    void FUNK_NAME(void)
 
 #define context(_str)               describe(_str)
 
@@ -92,7 +91,6 @@ bool            ru_is_expect = false;
 
 int main(void)
 {
-    char* ru_str = "";
     #include "includes"
     printf("\n%d examples, %d failures\n", ru_test, ru_count_failure);
     return 0;

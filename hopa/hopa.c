@@ -46,10 +46,10 @@
                                     } \
                                     ru_test++;
 
-#define assert_false                (   ru_count_failure++, \
+#define assert_false()              (   ru_count_failure++, \
                                         RUNIT_CHECK_FIRST_FAILURE, \
                                         RUNIT_ERROR_TEXT, \
-                                        printf("Failure stub\n") \
+                                        printf("Failure stub\n\n") \
                                     ); \
                                     ru_test++;
 

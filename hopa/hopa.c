@@ -4,15 +4,15 @@
 #include <stdint.h>
 #include <string.h>
 
-#define FUNK_NAME_HELPER_Y(_line)   hopa_func_##_line
-#define FUNK_NAME_HELPER_X(_line)   FUNK_NAME_HELPER_Y(_line)
-#define FUNK_NAME                   FUNK_NAME_HELPER_X(__LINE__)
+#define FUNC_NAME_HELPER_Y(_line)   hopa_func_##_line
+#define FUNC_NAME_HELPER_X(_line)   FUNC_NAME_HELPER_Y(_line)
+#define FUNC_NAME                   FUNC_NAME_HELPER_X(__LINE__)
 
-#define RUNIT_ATTACH_COUNT          10
+#define RUNIT_NESTING_COUNT         10
+#define RUNIT_DESC_LEN              (100 + 1)
 #define RUNIT_CHECK_FIRST_FAILURE   ru_count_failure != 1 ? true : printf("\nFailures:\n\n")
 #define RUNIT_ERROR_TEXT            printf("%d) %s\n\tError %s(%d): ", ru_count_failure, ru_err_buf, __FILE__, __LINE__)
 #define RUNIT_IF_EXPECT(_x,_y)      ru_is_expect == true ? ru_is_expect = false, printf("\n\tExpected: %s\n\tGot: %u\n\n\t(compared using %s)\n\n", _x, ru_expect_val, _y) : true
-
 
 #define to_eq(_x)                    == _x ? \
                                     true : \
@@ -53,17 +53,17 @@
                                     ); \
                                     ru_test++;
 
-#define describe(_str)              ru_tmp_str[ru_namespace] = _str; \
-                                    auto void FUNK_NAME(void); \
-                                    sprintf(ru_err_buf, "%s", ru_tmp_str[0]); \
+#define describe(_str)              snprintf(ru_tmp_str[ru_namespace], RUNIT_DESC_LEN, "%s", _str); \
+                                    auto void FUNC_NAME(void); \
+                                    snprintf(ru_err_buf, RUNIT_DESC_LEN, "%s", ru_tmp_str[0]); \
                                     for (int i = 1; i <= ru_namespace; i++) { strcat(ru_err_buf, "\n\t"); strcat(ru_err_buf, ru_tmp_str[i]); } \
                                     if (ru_before_each_func != NULL && ru_is_it) { ru_before_each_func(); } \
                                     ru_namespace++; \
-                                    if (ru_namespace > RUNIT_ATTACH_COUNT) { printf("\n[hopa] Error: The nesting of blocks should not exceed the maximum (%d)\n\n", RUNIT_ATTACH_COUNT); exit(1); } \
-                                    FUNK_NAME(); \
+                                    if (ru_namespace > RUNIT_NESTING_COUNT) { printf("\n[hopa] Error: The nesting of blocks should not exceed the maximum (%d)\n\n", RUNIT_NESTING_COUNT); exit(1); } \
+                                    FUNC_NAME(); \
                                     ru_namespace--; \
                                     ru_is_it = 0; \
-                                    void FUNK_NAME(void)
+                                    void FUNC_NAME(void)
 
 #define context(_str)               describe(_str)
 
@@ -78,12 +78,10 @@
 
 __attribute__((weak)) void ru_before_each_func();
 
-
-
 unsigned int    ru_test = 0;
 unsigned int    ru_count_failure = 0;
-char           *ru_tmp_str[RUNIT_ATTACH_COUNT];
-char            ru_err_buf[1024] = "";
+char            ru_tmp_str[RUNIT_NESTING_COUNT][RUNIT_DESC_LEN];
+char            ru_err_buf[RUNIT_NESTING_COUNT * RUNIT_DESC_LEN + RUNIT_NESTING_COUNT * 2] = "";
 unsigned int    ru_namespace = 0;
 char            ru_is_it = 0;
 unsigned int    ru_expect_val;

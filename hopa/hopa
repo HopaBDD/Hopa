@@ -108,7 +108,6 @@ then
     cat $INC_FILE_NAME
     echo
     echo $COMPILE_CMD
-    echo
     gcc -E $RUNIT_C $SRC -I$PRJ_PATH -DHOPA_NOT_INCLUDE_FOR_TEST > log
     echo
     $COMPILE_CMD

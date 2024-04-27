@@ -10,67 +10,67 @@
 
 #define RUNIT_NESTING_COUNT         10
 #define RUNIT_DESC_LEN              (100 + 1)
-#define RUNIT_CHECK_FIRST_FAILURE   ru_count_failure != 1 ? true : printf("\nFailures:\n\n")
-#define RUNIT_ERROR_TEXT            printf("%d) %s\n\tError %s(%d): ", ru_count_failure, ru_err_buf, __FILE__, __LINE__)
-#define RUNIT_IF_EXPECT(_x,_y)      ru_is_expect == true ? ru_is_expect = false, printf("\n\tExpected: %s\n\tGot: %u\n\n\t(compared using %s)\n\n", _x, ru_expect_val, _y) : true
+#define RUNIT_CHECK_FIRST_FAILURE   hfw_s.cnt_failure != 1 ? true : printf("\nFailures:\n\n")
+#define RUNIT_ERROR_TEXT            printf("%d) %s\n\tError %s(%d): ", hfw_s.cnt_failure, hfw_s.err_buf, __FILE__, __LINE__)
+#define RUNIT_IF_EXPECT(_x,_y)      hfw_s.is_expect == true ? hfw_s.is_expect = false, printf("\tExpected: %s\n\tGot: %u\n\n\t(compared using %s)\n\n", _x, hfw_s.expect_val, _y) : true
 
 #define to_eq(_x)                    == _x ? \
                                     true : \
-                                    (    ru_count_failure++, \
+                                    (    hfw_s.cnt_failure++, \
                                          RUNIT_CHECK_FIRST_FAILURE, \
                                          RUNIT_ERROR_TEXT, \
-                                         printf("Expected to equal to %s (%d dec/0x%x hex)\n", #_x, _x, _x), \
+                                         printf("Expected to equal to %s (%d dec/0x%x hex)\n\n", #_x, _x, _x), \
                                          RUNIT_IF_EXPECT(#_x, "==") \
                                     ); \
-                                    ru_test++;
+                                    hfw_s.test_num++;
 
 #define not_to_eq(_x)                != _x ? \
                                     true : \
-                                    (   ru_count_failure++, \
+                                    (   hfw_s.cnt_failure++, \
                                         RUNIT_CHECK_FIRST_FAILURE, \
                                         RUNIT_ERROR_TEXT, \
-                                        printf("Expected to not to equal to %s (%d dec/0x%x hex)\n", #_x, _x, _x), \
+                                        printf("Expected to not to equal to %s (%d dec/0x%x hex)\n\n", #_x, _x, _x), \
                                         RUNIT_IF_EXPECT(#_x, "!=") \
                                     ); \
-                                    ru_test++;
+                                    hfw_s.test_num++;
 
 #define arr_to_eq(_a, _b, _s)       for (int i = 0; i < _s; i++) \
                                     { \
                                         if (_a[i] != _b[i]) \
                                         { \
-                                            ru_count_failure++; \
+                                            hfw_s.cnt_failure++; \
                                             RUNIT_CHECK_FIRST_FAILURE; \
                                             RUNIT_ERROR_TEXT; \
-                                            printf("Elemets with %d index not equal (0x%x != 0x%x)\n", i, _a[i], _b[i]); \
+                                            printf("Elemets with %d index not equal (0x%x != 0x%x)\n\n", i, _a[i], _b[i]); \
                                         } \
                                     } \
-                                    ru_test++;
+                                    hfw_s.test_num++;
 
-#define assert_false()              (   ru_count_failure++, \
+#define assert_false()              (   hfw_s.cnt_failure++, \
                                         RUNIT_CHECK_FIRST_FAILURE, \
                                         RUNIT_ERROR_TEXT, \
                                         printf("Failure stub\n\n") \
                                     ); \
-                                    ru_test++;
+                                    hfw_s.test_num++;
 
-#define describe(_str)              snprintf(ru_tmp_str[ru_namespace], RUNIT_DESC_LEN, "%s", _str); \
+#define describe(_str)              snprintf(hfw_s.tmp_str[hfw_s.namespace], RUNIT_DESC_LEN, "%s", _str); \
                                     auto void FUNC_NAME(void); \
-                                    snprintf(ru_err_buf, RUNIT_DESC_LEN, "%s", ru_tmp_str[0]); \
-                                    for (int i = 1; i <= ru_namespace; i++) { strcat(ru_err_buf, "\n\t"); strcat(ru_err_buf, ru_tmp_str[i]); } \
-                                    if (ru_before_each_func != NULL && ru_is_it) { ru_before_each_func(); } \
-                                    ru_namespace++; \
-                                    if (ru_namespace > RUNIT_NESTING_COUNT) { printf("\n[hopa] Error: The nesting of blocks should not exceed the maximum (%d)\n\n", RUNIT_NESTING_COUNT); exit(1); } \
+                                    snprintf(hfw_s.err_buf, RUNIT_DESC_LEN, "%s", hfw_s.tmp_str[0]); \
+                                    for (int i = 1; i <= hfw_s.namespace; i++) { strcat(hfw_s.err_buf, "\n\t"); strcat(hfw_s.err_buf, hfw_s.tmp_str[i]); } \
+                                    if (ru_before_each_func != NULL && hfw_s.is_it) { ru_before_each_func(); } \
+                                    hfw_s.namespace++; \
+                                    if (hfw_s.namespace > RUNIT_NESTING_COUNT) { printf("\n[hopa] Error: The nesting of blocks should not exceed the maximum (%d)\n\n", RUNIT_NESTING_COUNT); exit(1); } \
                                     FUNC_NAME(); \
-                                    ru_namespace--; \
-                                    ru_is_it = 0; \
+                                    hfw_s.namespace--; \
+                                    hfw_s.is_it = false; \
                                     void FUNC_NAME(void)
 
 #define context(_str)               describe(_str)
 
-#define it(_str)                    ru_is_it = 1; \
+#define it(_str)                    hfw_s.is_it = true; \
                                     describe(_str) 
 
-#define expect(_s)                  ru_is_expect = true; ru_expect_val = _s; _s
+#define expect(_s)                  hfw_s.is_expect = true; hfw_s.expect_val = _s; _s
 
 #define source(_str)
 
@@ -78,18 +78,32 @@
 
 __attribute__((weak)) void ru_before_each_func();
 
-unsigned int    ru_test = 0;
-unsigned int    ru_count_failure = 0;
-char            ru_tmp_str[RUNIT_NESTING_COUNT][RUNIT_DESC_LEN];
-char            ru_err_buf[RUNIT_NESTING_COUNT * RUNIT_DESC_LEN + RUNIT_NESTING_COUNT * 2] = "";
-unsigned int    ru_namespace = 0;
-char            ru_is_it = 0;
-unsigned int    ru_expect_val;
-bool            ru_is_expect = false;
-
 int main(void)
 {
+    struct hopa_fw_struct_s
+    {
+        unsigned int    test_num;
+        unsigned int    cnt_failure;
+        char            tmp_str[RUNIT_NESTING_COUNT][RUNIT_DESC_LEN];
+        char            err_buf[RUNIT_NESTING_COUNT * RUNIT_DESC_LEN + RUNIT_NESTING_COUNT * 2];
+        unsigned int    namespace;
+        bool            is_it;
+        unsigned int    expect_val;
+        bool            is_expect;
+    };
+
+    struct hopa_fw_struct_s hfw_s = 
+    {
+        .test_num       = 0,
+        .cnt_failure    = 0,
+        .tmp_str        = { 0 },
+        .err_buf        = "",
+        .namespace      = 0,
+        .is_it          = false,
+        .is_expect      = false
+    };
+
     #include "includes"
-    printf("\n%d examples, %d failures\n", ru_test, ru_count_failure);
+    printf("\n%d examples, %d failures\n", hfw_s.test_num, hfw_s.cnt_failure);
     return 0;
 }

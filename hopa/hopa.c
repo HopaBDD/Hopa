@@ -11,7 +11,7 @@
 #define RUNIT_NESTING_COUNT         10
 #define RUNIT_DESC_LEN              (100 + 1)
 #define RUNIT_CHECK_FIRST_FAILURE   hfw_s.cnt_failure != 1 ? true : printf("\nFailures:\n\n")
-#define RUNIT_ERROR_TEXT            printf("%d) %s\n\tError %s(%d): ", hfw_s.cnt_failure, hfw_s.err_buf, __FILE__, __LINE__)
+#define RUNIT_ERROR_TEXT            printf("%d) %s\n\t\033[31mError %s(%d): \033[0m", hfw_s.cnt_failure, hfw_s.err_buf, __FILE__, __LINE__)
 #define RUNIT_IF_EXPECT(_x,_y)      hfw_s.is_expect == true ? hfw_s.is_expect = false, printf("\tExpected: %s\n\tGot: %u\n\n\t(compared using %s)\n\n", _x, hfw_s.expect_val, _y) : true
 
 #define to_eq(_x)                    == _x ? \
@@ -104,6 +104,6 @@ int main(void)
     };
 
     #include "includes"
-    printf("\n%d examples, %d failures\n", hfw_s.test_num, hfw_s.cnt_failure);
+    printf("\n\033[32m%d examples, %d failures\033[0m\n", hfw_s.test_num, hfw_s.cnt_failure);
     return 0;
 }

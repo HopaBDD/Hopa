@@ -43,6 +43,14 @@ function init {
     fi
 }
 
+function update {
+    echo "Updating Hopa!..."
+    echo
+    git -C hopa/ pull origin master
+    echo
+    echo "done"
+}
+
 VERBOSE_MODE=
 
 for key in "$@"
@@ -61,6 +69,10 @@ case $key in
         ;;
     init)
         init
+        exit 0
+        ;;
+    update)
+        update
         exit 0
         ;;
     *)

@@ -6,10 +6,13 @@ hopa-core provides the structure for writing executable examples of how your cod
 
 ## Install
 
-    cd your_project
-    git clone git@github.com:DasRegal/hopa.git
     echo alias hopa='./hopa/hopa/hopa' >> ~/.bashrc
     source ~/.bashrc
+
+## Add in project
+
+    cd your_project
+    git clone git@github.com:DasRegal/hopa.git
     hopa init
 
 ## Basic Structure
@@ -35,6 +38,28 @@ source("example_src/module_1.c")
         }
     }
 }
+```
+
+`before_each` block is called before each `it` block, and is intended for repetitive actions.
+
+```c
+{
+    before_each
+    {
+        printf("Hello\n");
+    }
+
+    it("...") {}
+    it("...") {}
+    it("...") {}
+}
+
+Result:
+
+Hello
+Hello
+Hello
+
 ```
 
 ## Nested Groups

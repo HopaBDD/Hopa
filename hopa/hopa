@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HOPA_VERSION=1.0V
+HOPA_VERSION=1.1V
 
 RUNIT_SCRIPT_PATH=$0
 EXE_FILE=$(echo $RUNIT_SCRIPT_PATH)_exe
@@ -106,9 +106,13 @@ for eachfile in $INC_FILES
 do
     echo "#include \"$eachfile\"" >> $INC_FILE_NAME
     INC_SRC=$(cat $eachfile | grep -Ei 'source\(\".*"\)' | grep -oEi '\".*\"' | grep -oEi '[^"]*' | tr '\n' ' ')
+    if [[ $SRC == *$INC_SRC* ]]; then
+        continue
+    fi
+
     if [ ! -z "$INC_SRC" ]
     then
-        SRC="$SRC $PRJ_PATH/$INC_SRC"
+        SRC="$SRC $INC_SRC"
     fi
 done
 

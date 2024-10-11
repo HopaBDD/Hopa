@@ -1,13 +1,15 @@
 #!/bin/bash
 
-HOPA_VERSION=1.2V
+HOPA_VERSION=1.3V
 
-RUNIT_SCRIPT_PATH=$0
-EXE_FILE=$(echo $RUNIT_SCRIPT_PATH)_exe
-RUNIT_C=$(echo $RUNIT_SCRIPT_PATH).c
+HOPA_SCRIPT_PATH=$0
+EXE_FILE=$(echo $HOPA_SCRIPT_PATH)_exe
+HOPA_C=$(echo $HOPA_SCRIPT_PATH).c
 PRJ_PATH="$(pwd)"
 INC_FILE_NAME="$(pwd)/includes"
 SPEC_DIR="$PRJ_PATH/spec"
+HOPA_RES_FILE="hopa_res.conf"
+HOPA_DEFINES="-DHOPA_NOT_INCLUDE_FOR_TEST -DHOPA_RES_FILE=$HOPA_RES_FILE"
 
 function print_usage {
     echo "Usage: hopa [options]"
@@ -91,6 +93,12 @@ then
     exit 1
 fi
 
+if [ -f $HOPA_RES_FILE ]
+then
+    rm $HOPA_RES_FILE
+fi
+touch $HOPA_RES_FILE
+
 if [ -f $INC_FILE_NAME ]
 then
     rm $INC_FILE_NAME
@@ -116,7 +124,7 @@ do
     fi
 done
 
-COMPILE_CMD="gcc $RUNIT_C $SRC -o $EXE_FILE -I$PRJ_PATH -DHOPA_NOT_INCLUDE_FOR_TEST"
+COMPILE_CMD="gcc $HOPA_C $SRC -o $EXE_FILE -I$PRJ_PATH $HOPA_DEFINES"
 
 if [ "$VERBOSE_MODE" ]
 then
@@ -124,7 +132,7 @@ then
     cat $INC_FILE_NAME
     echo
     echo $COMPILE_CMD
-    gcc -E $RUNIT_C $SRC -I$PRJ_PATH -DHOPA_NOT_INCLUDE_FOR_TEST > log
+    gcc -E $HOPA_C $SRC -I$PRJ_PATH -DHOPA_NOT_INCLUDE_FOR_TEST > log
     echo
     $COMPILE_CMD
 else
@@ -144,6 +152,7 @@ if [ -f $INC_FILE_NAME ]
 then
     rm $EXE_FILE
     rm $INC_FILE_NAME
+    rm $HOPA_RES_FILE
 else
     echo
     echo "[Hopa] Error: compile error."

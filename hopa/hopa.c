@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <string.h>
 
+#define STRINGIFY(_str)             #_str
+#define TOSTRING(_str)              STRINGIFY(_str)
+
 #define FUNC_NAME_HELPER_Y(_line)   hopa_func_##_line
 #define FUNC_NAME_HELPER_X(_line)   FUNC_NAME_HELPER_Y(_line)
 #define FUNC_NAME                   FUNC_NAME_HELPER_X(__LINE__)
@@ -78,6 +81,8 @@ __attribute__((weak)) void ru_before_each_func();
 
 int main(void)
 {
+    FILE *fptr;
+
     struct hopa_fw_struct_s
     {
         unsigned int    test_num;
@@ -102,6 +107,16 @@ int main(void)
     };
 
     #include "includes"
-    printf("\n\033[32m%d examples, %d failures\033[0m\n", hfw_s.test_num, hfw_s.cnt_failure);
+    /* printf("\n\033[32m%d examples, %d failures\033[0m\n", hfw_s.test_num, hfw_s.cnt_failure); */
+
+    fptr = fopen(TOSTRING(HOPA_RES_FILE), "a");
+    if (fptr == NULL)
+    {
+        printf("[Hopa] Error: Cannot open file %s\n", TOSTRING(HOPA_RES_FILE));
+        return 1;
+    }
+    fprintf(fptr, "%d %d\n", hfw_s.test_num, hfw_s.cnt_failure);
+    fclose(fptr);
+
     return 0;
 }

@@ -14,25 +14,21 @@
 #define RUNIT_ERROR_TEXT            printf("%d) %s\n\t\033[31mError %s(%d): \033[0m", hfw_s.cnt_failure, hfw_s.err_buf, __FILE__, __LINE__)
 #define RUNIT_IF_EXPECT(_x,_y)      hfw_s.is_expect == true ? hfw_s.is_expect = false, printf("\tExpected: %s\n\tGot: %u\n\n\t(compared using %s)\n\n", _x, hfw_s.expect_val, _y) : true
 
-#define to_eq(_x)                    == _x ? \
+#define eq_expr_template(_sign, _text, _x) \
+                                    _sign _x ? \
                                     true : \
                                     (    hfw_s.cnt_failure++, \
                                          RUNIT_CHECK_FIRST_FAILURE, \
                                          RUNIT_ERROR_TEXT, \
-                                         printf("Expected to equal to %s (%d dec/0x%x hex)\n\n", #_x, _x, _x), \
-                                         RUNIT_IF_EXPECT(#_x, "==") \
+                                         printf("%s %s (%d dec/0x%x hex)\n\n", _text, #_x, _x, _x), \
+                                         RUNIT_IF_EXPECT(#_x, #_sign) \
                                     ); \
                                     hfw_s.test_num++;
 
-#define not_to_eq(_x)                != _x ? \
-                                    true : \
-                                    (   hfw_s.cnt_failure++, \
-                                        RUNIT_CHECK_FIRST_FAILURE, \
-                                        RUNIT_ERROR_TEXT, \
-                                        printf("Expected to not to equal to %s (%d dec/0x%x hex)\n\n", #_x, _x, _x), \
-                                        RUNIT_IF_EXPECT(#_x, "!=") \
-                                    ); \
-                                    hfw_s.test_num++;
+#define to_eq(_x)                   eq_expr_template(==, "Expected to equal to", _x)
+#define not_to_eq(_x)               eq_expr_template(!=, "Expected to not to equal to", _x)
+#define less_then(_x)               eq_expr_template(< , "Expected to be less then", _x)
+#define greater_then(_x)            eq_expr_template(> , "Expected to be greater then", _x)
 
 #define arr_to_eq(_a, _b, _s)       for (int i = 0; i < _s; i++) \
                                     { \
@@ -46,12 +42,14 @@
                                     } \
                                     hfw_s.test_num++;
 
-#define assert_false()              (   hfw_s.cnt_failure++, \
+#define assert(_text)               (   hfw_s.cnt_failure++, \
                                         RUNIT_CHECK_FIRST_FAILURE, \
                                         RUNIT_ERROR_TEXT, \
-                                        printf("Failure stub\n\n") \
+                                        printf("[Assert] %s\n\n", _text) \
                                     ); \
                                     hfw_s.test_num++;
+
+#define assert_failure()            assert("Failure stub")
 
 #define describe(_str)              snprintf(hfw_s.tmp_str[hfw_s.namespace], RUNIT_DESC_LEN, "%s", _str); \
                                     auto void FUNC_NAME(void); \

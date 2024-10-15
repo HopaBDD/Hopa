@@ -12,7 +12,7 @@ hopa-core provides the structure for writing executable examples of how your cod
 ## Add in project
 
     cd your_project
-    git clone git@github.com:DasRegal/hopa.git
+    git clone git@github.com:HopaBDD/hopa.git
     hopa init
 
 ## Basic Structure

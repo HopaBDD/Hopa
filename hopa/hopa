@@ -10,6 +10,8 @@ INC_FILE_NAME="$(pwd)/includes"
 SPEC_DIR="$PRJ_PATH/spec"
 HOPA_RES_FILE="hopa_res.conf"
 HOPA_DEFINES="-DHOPA_NOT_INCLUDE_FOR_TEST -DHOPA_RES_FILE=$HOPA_RES_FILE"
+HOPA_GCC="gcc"
+HOPA_LOG_FILE="log"
 
 function print_usage {
     echo "Usage: hopa [options]"
@@ -84,6 +86,7 @@ esac
 done
 
 echo "Hopa! $HOPA_VERSION"
+echo
 
 if [ ! -d $SPEC_DIR ]
 then
@@ -98,6 +101,7 @@ then
     rm $HOPA_RES_FILE
 fi
 touch $HOPA_RES_FILE
+echo "0 0" > $HOPA_RES_FILE
 
 if [ -f $INC_FILE_NAME ]
 then
@@ -112,7 +116,8 @@ fi
 
 for eachfile in $INC_FILES
 do
-    echo "#include \"$eachfile\"" >> $INC_FILE_NAME
+    SRC=""
+    echo "#include \"$eachfile\"" > $INC_FILE_NAME
     INC_SRC=$(cat $eachfile | grep -Ei 'source\(\".*"\)' | grep -oEi '\".*\"' | grep -oEi '[^"]*' | tr '\n' ' ')
     if [[ $SRC == *$INC_SRC* ]]; then
         continue
@@ -122,31 +127,38 @@ do
     then
         SRC="$SRC $INC_SRC"
     fi
+
+    COMPILE_CMD="$HOPA_GCC $HOPA_C $SRC -o $EXE_FILE -I$PRJ_PATH $HOPA_DEFINES"
+
+    if [ "$VERBOSE_MODE" ]
+    then
+        cat $INC_FILE_NAME
+        echo $COMPILE_CMD
+        $HOPA_GCC -E $HOPA_C $SRC -I$PRJ_PATH -DHOPA_NOT_INCLUDE_FOR_TEST > $HOPA_LOG_FILE
+        echo
+        $COMPILE_CMD
+    else
+        $COMPILE_CMD > /dev/null 2>&1
+    fi
+
+    if [ $? -ne 0 ]
+    then
+        echo
+        echo "[Hopa] Error: compile error."
+        echo "Type 'hopa -v' for verbose mode"
+        exit 1
+    else
+        $EXE_FILE
+    fi
+
+    if [ $? -ne 0 ]
+    then
+        exit 1
+    fi
 done
 
-COMPILE_CMD="gcc $HOPA_C $SRC -o $EXE_FILE -I$PRJ_PATH $HOPA_DEFINES"
-
-if [ "$VERBOSE_MODE" ]
-then
-    echo
-    cat $INC_FILE_NAME
-    echo
-    echo $COMPILE_CMD
-    gcc -E $HOPA_C $SRC -I$PRJ_PATH -DHOPA_NOT_INCLUDE_FOR_TEST > log
-    echo
-    $COMPILE_CMD
-else
-    $COMPILE_CMD > /dev/null 2>&1
-fi
-
-if [ $? -ne 0 ]
-then
-    echo
-    echo "[Hopa] Error: compile error."
-    exit 1
-else
-    $EXE_FILE
-fi
+read test_num cnt_failure < $HOPA_RES_FILE
+printf "\n\e[32m%d examples, %d failures\e[0m\n" $test_num $cnt_failure
 
 if [ -f $INC_FILE_NAME ]
 then

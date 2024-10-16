@@ -82,6 +82,7 @@ __attribute__((weak)) void ru_before_each_func();
 int main(void)
 {
     FILE *fptr;
+    int   ret;
 
     struct hopa_fw_struct_s
     {
@@ -106,17 +107,36 @@ int main(void)
         .is_expect      = false
     };
 
-    #include "includes"
-    /* printf("\n\033[32m%d examples, %d failures\033[0m\n", hfw_s.test_num, hfw_s.cnt_failure); */
+    fptr = fopen(TOSTRING(HOPA_RES_FILE), "r");
+    if (fptr == NULL)
+    {
+        printf("[Hopa] Error: Cannot open file %s for read\n", TOSTRING(HOPA_RES_FILE));
+        return 1;
+    }
 
-    fptr = fopen(TOSTRING(HOPA_RES_FILE), "a");
+    ret = fscanf(fptr, "%u%u", &hfw_s.test_num, &hfw_s.cnt_failure);
+    if (ret != 2)
+    {
+        printf("[Hopa] Error: The content of file %s does not match\n", TOSTRING(HOPA_RES_FILE));
+        return 1;
+    }
+
+    #include "includes"
+
+    fptr = freopen(TOSTRING(HOPA_RES_FILE), "w", fptr);
     if (fptr == NULL)
     {
         printf("[Hopa] Error: Cannot open file %s\n", TOSTRING(HOPA_RES_FILE));
         return 1;
     }
-    fprintf(fptr, "%d %d\n", hfw_s.test_num, hfw_s.cnt_failure);
+
+    ret = fprintf(fptr, "%u %u\n", hfw_s.test_num, hfw_s.cnt_failure);
     fclose(fptr);
+    if (ret < 4)
+    {
+        printf("[Hopa] Error: Cannot write to the %s file\n", TOSTRING(HOPA_RES_FILE));
+        return 1;
+    }
 
     return 0;
 }

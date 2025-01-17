@@ -7,7 +7,8 @@ EXE_FILE=$(echo $HOPA_SCRIPT_PATH)_exe
 HOPA_C=$(echo $HOPA_SCRIPT_PATH).c
 PRJ_PATH="$(pwd)"
 INC_FILE_NAME="$(pwd)/includes"
-SPEC_DIR="$PRJ_PATH/spec"
+SPEC_DIR_NAME="spec"
+SPEC_DIR="$PRJ_PATH/$SPEC_DIR_NAME"
 HOPA_RES_FILE="hopa_res.conf"
 HOPA_DEFINES="-DHOPA_NOT_INCLUDE_FOR_TEST -DHOPA_RES_FILE=$HOPA_RES_FILE"
 HOPA_GCC="gcc"
@@ -111,11 +112,12 @@ touch $INC_FILE_NAME
 
 if [ -z "$INC_FILES" ]
 then
-    INC_FILES=`ls $SPEC_DIR/*`
+    INC_FILES=`ls -I "*tmp*" -I "*helper*" $SPEC_DIR_NAME/`
 fi
 
 for eachfile in $INC_FILES
 do
+    eachfile="$SPEC_DIR_NAME/$eachfile"
     SRC=""
     echo "#include \"$eachfile\"" > $INC_FILE_NAME
     INC_SRC=$(cat $eachfile | grep -Ei 'source\(\".*"\)' | grep -oEi '\".*\"' | grep -oEi '[^"]*' | tr '\n' ' ')

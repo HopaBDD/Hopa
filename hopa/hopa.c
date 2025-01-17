@@ -23,10 +23,11 @@
                                     (    hfw_s.cnt_failure++, \
                                          RUNIT_CHECK_FIRST_FAILURE, \
                                          RUNIT_ERROR_TEXT, \
-                                         printf("%s %s (%d dec/0x%x hex)\n\n", _text, #_x, _x, _x), \
+                                         hfw_s.is_loop ? printf("%s %s (%d dec/0x%x hex) on iteration %ld\n\n", _text, #_x, _x, _x, hfw_s.loop_iter) : printf("%s %s (%d dec/0x%x hex)\n\n", _text, #_x, _x, _x), \
                                          RUNIT_IF_EXPECT(#_x, #_sign) \
                                     ); \
-                                    hfw_s.test_num++;
+                                    hfw_s.test_num++; \
+                                    hfw_s.is_loop = false;
 
 #define to_eq(_x)                   eq_expr_template(==, "Expected to equal to", _x)
 #define not_to_eq(_x)               eq_expr_template(!=, "Expected to not to equal to", _x)
@@ -69,13 +70,17 @@
 #define context(_str)               describe(_str)
 
 #define it(_str)                    hfw_s.is_it = true; \
-                                    describe(_str) 
+                                    describe(_str)
 
 #define expect(_s)                  hfw_s.is_expect = true; hfw_s.expect_val = _s; _s
 
 #define source(_str)
 
 #define before_each  void ru_before_each_func()
+
+#define for(...)     hfw_s.loop_iter = 0; \
+                     hfw_s.is_loop = true; \
+                     for(__VA_ARGS__, hfw_s.loop_iter++, hfw_s.is_loop = true)
 
 __attribute__((weak)) void ru_before_each_func();
 
@@ -94,9 +99,11 @@ int main(void)
         bool            is_it;
         unsigned int    expect_val;
         bool            is_expect;
+        bool            is_loop;
+        size_t          loop_iter;
     };
 
-    struct hopa_fw_struct_s hfw_s = 
+    struct hopa_fw_struct_s hfw_s =
     {
         .test_num       = 0,
         .cnt_failure    = 0,
@@ -104,7 +111,8 @@ int main(void)
         .err_buf        = "",
         .namespace      = 0,
         .is_it          = false,
-        .is_expect      = false
+        .is_expect      = false,
+        .is_loop        = false
     };
 
     fptr = fopen(TOSTRING(HOPA_RES_FILE), "r");
